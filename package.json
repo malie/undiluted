@@ -1,0 +1,14 @@
+{
+  "name": "undiluted",
+  "version": "1.0.0",
+  "description": "",
+  "main": "solve.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Markus Liedl",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "condensate": "git+https://github.com/malie/condensate.git"
+  }
+}
