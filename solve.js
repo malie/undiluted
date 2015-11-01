@@ -246,7 +246,25 @@ function encodeToDimacs(size, givenDigits, givenBlacks, opts)
 	if (y+1 < size)
 	  blacksAround.push(black(x, y+1))
 	parts.push(not(ands(blacksAround)))}}}
-  
+
+  if (opts.noBlackFieldAlone) {
+    var s2 = Math.floor(size/2)
+    for (var y of xs) {
+      for (var x of xs) {
+	if (y == s2 && x == s2)
+	  continue
+	var blacksAround = []
+	blacksAround.push(black(x,y))
+	if (x-1 >= 0)
+	  blacksAround.push(not(black(x-1, y)))
+	if (y-1 >= 0)
+	  blacksAround.push(not(black(x, y-1)))
+	if (x+1 < size)
+	  blacksAround.push(not(black(x+1, y)))
+	if (y+1 < size)
+	  blacksAround.push(not(black(x, y+1)))
+	parts.push(not(ands(blacksAround)))}}}
+
   var all = ands(parts)
   var ts = logic.tseitin(all)
   var dimacs = logic.clausesToDimacs(ts)
@@ -512,7 +530,9 @@ function search(size, digits0, blacks0) {
 
   var opts = {
     straightMaxLength: null,
-    noSingleWhiteCells: true }
+    noSingleWhiteCells: true,
+    noBlackFieldAlone: false
+  }
   var dimacs = encodeToDimacs(size, digits, blacks, opts);
 
   tryGetTwoAssignments(
