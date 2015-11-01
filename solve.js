@@ -87,24 +87,25 @@ function writeDimacs(filename, dimacs) {
 
 
 
-function encodeToDimacs(size, givenDigits, givenBlacks, numExtraXors) {
+function encodeToDimacs(size, givenDigits, givenBlacks, opts)
+{
   var parts = []
 
   // extra xors ary only there to artificially restrict the search space
   // "xor streamlining"
-  for (var h = 0; h < numExtraXors; h++) {
-    function rand() {
-      return Math.floor(Math.random()*size)}
-    function randvar() {
-      return num(rand(), rand(), rand())}
-    parts.push(xor(randvar(), randvar()))
-    // parts.push(xor(xor(randvar(), randvar()),
-    // 		   xor(randvar(), randvar())))
-    // parts.push(xor(xor(xor(randvar(), randvar()),
-    // 		       xor(randvar(), randvar())),
-    // 		   xor(xor(randvar(), randvar()),
-    // 		       xor(randvar(), randvar()))))
-  }
+  // for (var h = 0; h < numExtraXors; h++) {
+  //   function rand() {
+  //     return Math.floor(Math.random()*size)}
+  //   function randvar() {
+  //     return num(rand(), rand(), rand())}
+  //   parts.push(xor(randvar(), randvar()))
+  //   parts.push(xor(xor(randvar(), randvar()),
+  //                  xor(randvar(), randvar())))
+  //   parts.push(xor(xor(xor(randvar(), randvar()),
+  // 		          xor(randvar(), randvar())),
+  // 		      xor(xor(randvar(), randvar()),
+  // 		          xor(randvar(), randvar()))))
+  // }
   
   var xs = []
   for (var x = 0; x < size; x += 1) xs.push(x)
@@ -135,7 +136,7 @@ function encodeToDimacs(size, givenDigits, givenBlacks, numExtraXors) {
     for (var d = da; d <= dz; d+=1)
       parts.push(num(d,x,y))
     return ors(parts)}
-  
+
   for (var x of xs) {
     for (var y of xs) {
       // (x,y) is the upper end of a vertical street,
@@ -153,6 +154,9 @@ function encodeToDimacs(size, givenDigits, givenBlacks, numExtraXors) {
 	    condParts.push(not(black(x, cy)))
 	  
 	  var len = yy - y + 1;
+	  if (len > opts.straightMaxLength) {
+	    parts.push(not(ands(condParts)))
+	    continue}
 	  var implParts = [];
 	  // d1 is the lowest digit assigned to that straight
 	  for (var d1 of xs) {
@@ -180,6 +184,10 @@ function encodeToDimacs(size, givenDigits, givenBlacks, numExtraXors) {
 	    condParts.push(not(black(cx, y)))
 	  
 	  var len = xx - x + 1;
+	  if (len > opts.straightMaxLength) {
+	    parts.push(not(ands(condParts)))
+	    continue}
+	  
 	  var implParts = [];
 	  // d1 is the lowest digit assigned to that straight
 	  for (var d1 of xs) {
@@ -221,6 +229,21 @@ function encodeToDimacs(size, givenDigits, givenBlacks, numExtraXors) {
     if (!gb.black)
       bl = not(bl)
     parts.push(bl)}
+
+  if (opts.noSingleWhiteCells) {
+    for (var y of xs) {
+      for (var x of xs) {
+	var blacksAround = []
+	blacksAround.push(not(black(x,y)))
+	if (x-1 >= 0)
+	  blacksAround.push(black(x-1, y))
+	if (y-1 >= 0)
+	  blacksAround.push(black(x, y-1))
+	if (x+1 < size)
+	  blacksAround.push(black(x+1, y))
+	if (y+1 < size)
+	  blacksAround.push(black(x, y+1))
+	parts.push(not(ands(blacksAround)))}}}
   
   var all = ands(parts)
   var ts = logic.tseitin(all)
@@ -363,8 +386,9 @@ function showCurrentState(size, digits, blacks, assignments, dimacs) {
     for (var x = 0; x < size; x+=1) {
       var bla = pos[black(x,y)]
       var d = dig[key(x,y)];
+      var dq = typeof d === 'number';
       parts.push( (bla ? 'X' : ' ')
-		  + (d ? '' + (d+1) : '_'))}
+		  + (dq ? '' + (d+1) : '_'))}
     console.log(parts.join(' '))}}
 
 
@@ -407,7 +431,7 @@ function showLink(size, digits, dimacs, assignments) {
   function isBlack(x, y) {
     return tr[black(x,y)]}
   function isShown(x, y) {
-    return dig[key(x,y)]}
+    return typeof dig[key(x,y)] === 'number'}
   function digitAt(x,y) {
     for (var d = 0; d < size; d+=1) {
       if (tr[num(d, x, y)])
@@ -474,8 +498,11 @@ function search(size, digits0, blacks0) {
   add();
   console.log(blacks)
   console.log(digits)
-  
-  var dimacs = encodeToDimacs(size, digits, blacks, 0);
+
+  var opts = {
+    straightMaxLength: 4,
+    noSingleWhiteCells: true }
+  var dimacs = encodeToDimacs(size, digits, blacks, opts);
 
   tryGetTwoAssignments(
     dimacs,
