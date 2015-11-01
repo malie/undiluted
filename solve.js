@@ -154,7 +154,8 @@ function encodeToDimacs(size, givenDigits, givenBlacks, opts)
 	    condParts.push(not(black(x, cy)))
 	  
 	  var len = yy - y + 1;
-	  if (len > opts.straightMaxLength) {
+	  if (opts.straightMaxLength
+	      && len > opts.straightMaxLength) {
 	    parts.push(not(ands(condParts)))
 	    continue}
 	  var implParts = [];
@@ -184,7 +185,8 @@ function encodeToDimacs(size, givenDigits, givenBlacks, opts)
 	    condParts.push(not(black(cx, y)))
 	  
 	  var len = xx - x + 1;
-	  if (len > opts.straightMaxLength) {
+	  if (opts.straightMaxLength
+	      && len > opts.straightMaxLength) {
 	    parts.push(not(ands(condParts)))
 	    continue}
 	  
@@ -483,24 +485,33 @@ function search(size, digits0, blacks0) {
       return [col, row]}}
   function rand() {
     return Math.floor(Math.random()*size)}
+  function addBlack() {
+    var rb = randBlackInUpperHalf()
+    blacks.push({col: rb[0], row: rb[1],
+		 black: 1 /*Math.random() > 0.8 ? 1 : 0*/})}
   function add() {
     if (Math.random() > 0.6) {
       console.log('placing a black field')
-      // randomly place (xxx or forbid xxx) a black field
-      var rb = randBlackInUpperHalf()
-      blacks.push({col: rb[0], row: rb[1],
-		   black: 1 /*Math.random() > 0.8 ? 1 : 0*/})}
+      // randomly place a black field
+      addBlack()}
     else {
       console.log('placing a digit')
       // randomly place a digit
       digits.push({col: rand(), row: rand(), digit: rand()})}}
 
-  add();
+  if (blacks0.length == 0) {
+    addBlack();
+    addBlack();
+    addBlack();
+    addBlack()}
+  else
+    add();
+  
   console.log(blacks)
   console.log(digits)
 
   var opts = {
-    straightMaxLength: 4,
+    straightMaxLength: null,
     noSingleWhiteCells: true }
   var dimacs = encodeToDimacs(size, digits, blacks, opts);
 
