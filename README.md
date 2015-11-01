@@ -1,179 +1,27 @@
-# undiluted - a STR8TS solver
+# undiluted - a STR8TS generator
 
-Solves str8ts puzzles by encoding to SAT.
-Right now it can generate random ones.
+Generates str8ts puzzles by searching for constellations
+that have only one single completion.
 
-Uses condensate to solve the SAT problems, though encoding to
-DIMACS format is already happing internally and exporting to a
-efficient SAT solver should not be difficult.
+Constellations are searched by iteratively adding one digit or black
+field a time. Each time it is checked if there are still, at least,
+two completions. If there is none it backtracks one step. If there
+is only one solution we are finished.
 
+Proposed str8ts are solved by encoding them to a SAT problem,
+and then via minisat.
 
+It would be straight forward to add more constraints to the generation
+process. Right now it's quite random, except one to three black fields
+per row and per column. And the black fields are symmetric
 
-## example run
+Once you got it running with
 
-Black fields are the ones with an X.
+    node solve.js
 
-    node solve.js 
-    num clauses: 54117
-    simplify
-    solve
-    solutions
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  6  4 X1
-     2  3  5  1  4  6 X7
-     4  1  3  5  2 X7  6
-    X7  6 X1  4  3  2  5
-     6 X7  2  3  5  1  4
+give it around five to ten minutes to generate a 9x9 puzzle.
+When finished, it outputs an URL that you can use to play it and
+share it :)
 
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  6  4 X1
-     2  3  5  1  4  6 X7
-     4  1  3  5  2 X7  6
-     7  6 X1  4  3  2  5
-     6 X7  2  3  5  1  4
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  6  4 X1
-     2  3  5  1  4  6 X7
-     4  1  3  5  2 X7  6
-     7 X6 X1  4  3  2  5
-     6 X7  2  3  5  1  4
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  4  6 X1
-     2  3  5  1  6  4 X7
-     4  1  3  5  2 X7  6
-     7 X6 X1  4  3  2  5
-     6 X7  2  3  5  1  4
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  4  6 X1
-     2  3  5  1  6  4 X7
-     4  1  3  5  2 X7  6
-     7  6 X1  4  3  2  5
-     6 X7  2  3  5  1  4
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  4  6 X1
-     2  3  5  1  6  4 X7
-     4  1  3  5  2 X7  6
-    X7  6 X1  4  3  2  5
-     6 X7  2  3  5  1  4
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  6  4 X1
-     2  3  5  1  4  6 X7
-     4  1  3  5  2 X7  6
-    X7  6 X1  3  5  2  4
-     6 X7  2  4  3  1  5
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  6  4 X1
-     2  3  5  1  4  6 X7
-     4  1  3  5  2 X7  6
-     7 X6 X1  3  5  2  4
-     6 X7  2  4  3  1  5
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  6  4 X1
-     2  3  5  1  4  6 X7
-     4  1  3  5  2 X7  6
-     7  6 X1  3  5  2  4
-     6 X7  2  4  3  1  5
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  4  6 X1
-     2  3  5  1  6  4 X7
-     4  1  3  5  2 X7  6
-     7  6 X1  3  5  2  4
-     6 X7  2  4  3  1  5
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  4  6 X1
-     2  3  5  1  6  4 X7
-     4  1  3  5  2 X7  6
-     7 X6 X1  3  5  2  4
-     6 X7  2  4  3  1  5
-
-    X1  2  4  6  7  5  3
-     5  4  6 X7 X1  3  2
-     3  5  7  2  4  6 X1
-     2  3  5  1  6  4 X7
-     4  1  3  5  2 X7  6
-    X7  6 X1  3  5  2  4
-     6 X7  2  4  3  1  5
-
-    X1  2  4  6  5  3 X7
-     5  4  6 X7  3  2  1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-    X7  6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-    X1  2  4  6  5  3  7
-     5  4  6 X7  3  2 X1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-    X7  6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-    X1  2  4  6  5  3 X7
-     5  4  6 X7  3  2 X1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-    X7  6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-    X1  2  4  6  5  3  7
-     5  4  6 X7  3  2 X1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-     7 X6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-    X1  2  4  6  5  3  7
-     5  4  6 X7  3  2 X1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-     7  6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-    X1  2  4  6  5  3 X7
-     5  4  6 X7  3  2  1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-     7  6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-    X1  2  4  6  5  3 X7
-     5  4  6 X7  3  2  1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-     7 X6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
-
-     1  2  4  6  5  3 X7
-     5  4  6 X7  3  2  1
-     3  5  7  4  6 X1  2
-     2  3  5  1  4 X7  6
-     4  1  3  2 X7  6  5
-    X7  6 X1  3  2  5  4
-     6 X7  2  5  1  4  3
+Have fun
+https://twitter.com/markusliedl
