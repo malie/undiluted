@@ -437,9 +437,9 @@ function showLink(size, digits, dimacs, assignments) {
 	var x = p^next()
 	assert(x >= 0 && x <= 63)
 	return url64codes[x]})
-  
+
   console.log('URL to play this game:\n',
-	      '/home/ml/str8ts-studio/index.html?p='
+	      'http://malie.github.io/undiluted/play/str8ts.html?p='
 	      + url64codes[size] + position.join(''))
 }
 

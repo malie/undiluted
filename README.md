@@ -25,3 +25,12 @@ share it :)
 
 Have fun
 https://twitter.com/markusliedl
+
+
+some examples:
+
+a 9x9:
+http://malie.github.io/undiluted/play/str8ts.html?p=9nbVW__EaTZ0nGo8rNZKTj75QdMLKdW-Ybl_SlrUTA1AKPpLODEvGkB9WIoGx4qemvq4eF-2oqsYEfd2mc
+
+or a smaller 7x7:
+http://malie.github.io/undiluted/play/str8ts.html?p=7d0xzdDAjRVm8UkndmBQzelrQDNFpcH3UntoMh63SKiGTX_LWT
