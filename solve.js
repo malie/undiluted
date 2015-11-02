@@ -94,12 +94,25 @@ function atMostThree(vars) {
 	      and(not(head), atMostThree(rest)))}}
 
 function num(d,x,y) { return 'num' + d + '@' + x + ',' + y }
+
+// a black without a digit
 function black(x,y) { return 'b@' + x + ',' + y }
+
+function largestDimacsVar(dimacs) {
+  var m = 0;
+  for (var clause of dimacs.dimacs) {
+    for (var lit of clause) {
+      var v = Math.abs(lit)
+      if (v > m)
+	m = v}}
+  return m}
 
 var fs = require('fs')
 function writeDimacs(filename, dimacs) {
   var lines = []
-  lines.push('p cnf 0 0');
+  var numClauses = dimacs.dimacs.length;
+  var numVars = largestDimacsVar(dimacs)
+  lines.push('p cnf ' + numVars + ' ' + numClauses);
   for (var cl of dimacs.dimacs) {
     lines.push(cl.concat([0]).join(' '))}
   fs.writeFileSync(filename, lines.join('\n'))}
@@ -420,7 +433,7 @@ function solveWithMinisat(dimacs, cont) {
   ch.on('error',
 	function (e) {
 	  console.log(e)})
-  ch.stdout.on('data', function (data) { 0 && console.log(data.toString())})
+  ch.stdout.on('data', function (data) { console.log(data.toString())})
   ch.stderr.on('data', function (data) { console.log('ERR:', data)})
   ch.on('close', function (data) {
     console.log('sat finished')
@@ -574,9 +587,9 @@ function search(size, digits0, blacks0) {
   var opts = {
     straightMaxLength: null,
     noSingleWhiteCells: true,
-    noBlackFieldAlone: false,
+    noBlackFieldAlone: true,
     minNumBlacksPerLine: 0,
-    maxNumBlacksPerLine: 3
+    maxNumBlacksPerLine: 2
   }
   var dimacs = encodeToDimacs(size, digits, blacks, opts);
 
@@ -600,4 +613,4 @@ function search(size, digits0, blacks0) {
 	else {
 	  assert(false)}}})}
 
-search(9, [], [])
+search(7, [], [])
