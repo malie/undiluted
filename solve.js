@@ -53,6 +53,16 @@ function oneOrTwo(vars) {
     return or(and(head, atMostOne(rest)),
 	      and(not(head), oneOrTwo(rest)))}}
 
+function atMostOne(vars) {
+  if (vars.length == 1) {
+    return vars[0]}
+  else {
+    assert(vars.length >= 2)
+    var head = vars[0]
+    var rest = vars.slice(1);
+    return or(and(head, not(ors(rest))),
+	      and(not(head), atMostOne(rest)))}}
+
 function atMostTwo(vars) {
   if (vars.length <= 2) {
     return or(vars[0], not(vars[0]))}
@@ -72,6 +82,16 @@ function oneTwoOrThree(vars) {
     var rest = vars.slice(1);
     return or(and(head, atMostTwo(rest)),
 	      and(not(head), oneTwoOrThree(rest)))}}
+
+function atMostThree(vars) {
+  if (vars.length <= 3) {
+    return or(vars[0], not(vars[1]))} // should be 'true'
+  else {
+    assert(vars.length > 3)
+    var head = vars[0]
+    var rest = vars.slice(1);
+    return or(and(head, atMostTwo(rest)),
+	      and(not(head), atMostThree(rest)))}}
 
 function num(d,x,y) { return 'num' + d + '@' + x + ',' + y }
 function black(x,y) { return 'b@' + x + ',' + y }
@@ -208,13 +228,39 @@ function encodeToDimacs(size, givenDigits, givenBlacks, opts)
     var bls = []
     for (var y of xs)
       bls.push(black(x,y))
-    parts.push(oneTwoOrThree(bls))}
+
+    // only 0 and 1 implemented
+    if (opts.minNumBlacksPerLine == 1)
+      parts.push(ors(bls))
+    else assert(opts.minNumBlacksPerLine == 0);
+
+    // only 1, 2 and 3 implemented
+    if (opts.maxNumBlacksPerLine == 3) {
+      parts.push(atMostThree(bls))}
+    else if (opts.maxNumBlacksPerLine == 2) {
+      parts.push(atMostTwo(bls))}
+    else if (opts.maxNumBlacksPerLine == 1) {
+      parts.push(atMostOne(bls))}
+    else assert(false)}
 
   for (var y of xs) {
     var bls = []
     for (var x of xs)
       bls.push(black(x,y))
-    parts.push(oneTwoOrThree(bls))}
+
+    // only 0 and 1 implemented
+    if (opts.minNumBlacksPerLine == 1)
+      parts.push(ors(bls))
+    else assert(opts.minNumBlacksPerLine == 0);
+
+    // only 1, 2 and 3 implemented
+    if (opts.maxNumBlacksPerLine == 3) {
+      parts.push(atMostThree(bls))}
+    else if (opts.maxNumBlacksPerLine == 2) {
+      parts.push(atMostTwo(bls))}
+    else if (opts.maxNumBlacksPerLine == 1) {
+      parts.push(atMostOne(bls))}
+    else assert(false)}
 
   // force blacks to rotational symmetry
   for (var x of xs) {
@@ -517,11 +563,8 @@ function search(size, digits0, blacks0) {
       // randomly place a digit
       digits.push({col: rand(), row: rand(), digit: rand()})}}
 
-  if (blacks0.length == 0) {
-    addBlack();
-    addBlack();
-    addBlack();
-    addBlack()}
+  if (blacks0.length < 2)
+    addBlack()
   else
     add();
   
@@ -531,7 +574,9 @@ function search(size, digits0, blacks0) {
   var opts = {
     straightMaxLength: null,
     noSingleWhiteCells: true,
-    noBlackFieldAlone: false
+    noBlackFieldAlone: false,
+    minNumBlacksPerLine: 0,
+    maxNumBlacksPerLine: 3
   }
   var dimacs = encodeToDimacs(size, digits, blacks, opts);
 
