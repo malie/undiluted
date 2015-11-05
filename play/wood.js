@@ -347,7 +347,8 @@ var handler = {
     if (!m.isGivenAt(col, row)) {
       m = m.clone();
       m.setSelected(col, row);
-      m.setSelectedField(nextClickPuts);
+      m.setSelectedField(m.isWrong(col,row)
+			 ? null : nextClickPuts);
       renderModel(m)}},
   
   mouseOverField: function (col, row) {
