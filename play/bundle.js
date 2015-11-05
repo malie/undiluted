@@ -147,9 +147,15 @@ var Cell = react.createClass({
     var sel = m.isSelected(col, row);
     var giv = m.isGivenAt(col, row)
     var sel4 = sel?2:0.5
+    var fieldText;
+    if (m.size <= 9)
+      fieldText = num !== null ? 1+num : ''
+    else
+      fieldText = num !== null ? "abcdefghijklmnopqrstuvwxyz"[num] : ''
     return rd.g(
       {key: 'c'+col+'r'+row,
-       onMouseOver: function () { handler.clickedField(col,row) }},
+       onMouseOver: function () { handler.mouseOverField(col,row) },
+       onClick: function () { handler.fieldClicked(col,row) }},
       [rd.rect(
 	{x: sel4, y:sel4, width:z-sel4*2, height:z-sel4*2,
 	 style: {strokeWidth: sel ? 4 : 1,
@@ -166,7 +172,7 @@ var Cell = react.createClass({
 			  ? 'rgb(255,210,210)'
 			  : 'rgb(100,20,20)')),
 		key: 't'},
-	       num !== null ? 1+num : '')
+	       fieldText)
       ])
   }
 })
@@ -200,7 +206,7 @@ var Page = react.createClass({
     return rd.svg(
       {width: bwidth,
        height: bheight,
-       ref: 'svg',
+       ref: 'svg', key: 'p',
        style: {boxShadow: '10px 10px 30px rgb(160,140,140)'},
        onMouseLeave: function () { handler.mouseAway() }},
       [underscore.range(0, mod.size).map(
@@ -214,9 +220,86 @@ var Page = react.createClass({
 				       model: mod})]))})])}
 })
 
+var Controls = react.createClass({
+  getInitialState: function () {
+    return {digit: null}},
+  render: function () {
+    var mod = this.props.model;
+    var size = mod.size;
+    var bwidth = size*z;
+    var T = this;
+    var digit = this.state.digit;
+    return rd.svg(
+      {width: bwidth-3,
+       height: z-3,
+       ref: 'svg', key:'c',
+       style: {boxShadow: '10px 10px 30px rgb(160,140,140)',
+	       marginTop: z
+	      },
+      },
+      [underscore.range(0, mod.size).map(
+	function (c) {
+	  function choose(e) {
+	    if (c==digit) {
+	      handler.setNextClickPuts(null)
+	      T.setState({digit: null})}
+	    else {
+	      handler.setNextClickPuts(c)
+	      T.setState({digit: c})}}
+	  var b = z*c;
+	  var d = 2;
+	  return rd.g(
+	    {key:''+c},
+	    [rd.rect(
+	      {x:b , y:0, width:z-d*2, height:z-d*2,
+	       key: ''+c,
+	       style: {strokeWidth: 1,
+		       fill:(c==digit)
+		       ? 'rgb(220,205,205)'
+		       : 'rgb(255,235,235)'},
+	       onClick: choose
+	      }),
+	      rd.text({x: b+24, y: z-20,
+		       fontFamily: '"Arial Black", Gadget, sans-serif',
+		       fontSize: z/2,
+		       fontWeight: 'normal',
+		       fill: 'rgb(100,20,20)',
+		       key: 't',
+		       onClick: choose},
+		      '' + (1+c))
+	    ])
+	})])}
+	  // return (
+	  //   rd.g({transform: 'translate(0, ' + r*z + ')',
+	  // 	  key: r},
+	  // 	 [react.createElement(Row,
+	  // 			      {row: r,
+	  // 			       key: r,
+	  // 			       model: mod})]))}
+
+})
+    
+
+
+var ViewerWithControls = react.createClass({
+  render: function () {
+    return (
+      rd.div(
+	{},
+	[ react.createElement(Page,
+			      {model: this.props.model,
+			       key:'p'}),
+	  react.createElement(Controls,
+			      {model: this.props.model,
+			       key: 'c'})
+	]
+      ))
+    }
+})
+
 
 function renderModel(m) {
-  var pageElement = react.createElement(Page, {model: m});
+  var pageElement = react.createElement(ViewerWithControls, {model: m});
   var root = reactDom.render(pageElement,
 			     document.getElementById('content'))}
 
@@ -236,18 +319,39 @@ function keyDownHandler(e) {
     e.preventDefault()
     return false}
   else {
-    var digit = e.keyCode-49;
-    if (digit >= 0 && digit < m.size) {
-      handler.digitPressed(digit)
-      e.preventDefault()
-      return false}}
+    if (m.size <= 9) {
+      var digit = e.keyCode-49;
+      if (digit >= 0 && digit < m.size) {
+	handler.digitPressed(digit)
+	e.preventDefault()
+	return false}}
+    else {
+      var digit = e.keyCode-65;
+      if (digit >= 0 && digit < m.size) {
+	handler.digitPressed(digit)
+	e.preventDefault()
+	return false}}}
   return true}
 
 document.addEventListener('keydown', keyDownHandler, false)
 
+var nextClickPuts = null
+
 var handler = {
 
-  clickedField: function (col, row) {
+  setNextClickPuts: function (digit) {
+    nextClickPuts = digit},
+
+  fieldClicked: function (col, row) {
+    console.log('field clicked', col, row)
+    if (!m.isGivenAt(col, row)) {
+      m = m.clone();
+      m.setSelected(col, row);
+      m.setSelectedField(m.isWrong(col,row)
+			 ? null : nextClickPuts);
+      renderModel(m)}},
+  
+  mouseOverField: function (col, row) {
     if (m.isGivenAt(col, row)) {
       m = m.clone();
       m.selectNothing()
@@ -305,9 +409,12 @@ function getGameFromURL() {
   var y = 0;
   for (var i = 1; i < g.length; i++) {
     var c = url64codes.indexOf(g[i]) ^ next()
-    if (c&1)
-      m.setBlackAt(x, y)
+    if (c&1) {
+      // console.log('is black', x, y)
+      m.setBlackAt(x, y)}
+    
     var isShown = (c&2) == 2;
+    // isShown && console.log('is shown', x, y);
     
     var digit = Math.floor(c/4)
     solution['c'+x+'r'+y] = digit;
