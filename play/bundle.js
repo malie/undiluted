@@ -152,6 +152,9 @@ var Cell = react.createClass({
       fieldText = num !== null ? 1+num : ''
     else
       fieldText = num !== null ? "abcdefghijklmnopqrstuvwxyz"[num] : ''
+    var rectStroke =
+      (sel ? 'rgb(255,80,80)'
+       : black ? 'rgb(40,35,35)' : 'rgb(200,190,190)')
     return rd.g(
       {key: 'c'+col+'r'+row,
        onMouseOver: function () { handler.mouseOverField(col,row) },
@@ -159,7 +162,7 @@ var Cell = react.createClass({
       [rd.rect(
 	{x: sel4, y:sel4, width:z-sel4*2, height:z-sel4*2,
 	 style: {strokeWidth: sel ? 4 : 1,
-		 stroke: sel ? 'rgb(255,80,80)' : 'grey',
+		 stroke: rectStroke,
 		 fill:fillCol},
 	 key: 'r'}),
        rd.text({x: 24, y: z-20,
