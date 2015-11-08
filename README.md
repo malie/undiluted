@@ -1,6 +1,6 @@
-# undiluted - a STR8TS generator
+# undiluted - a trying to immitate str8ts - broken
 
-Generates str8ts puzzles by searching for constellations
+Generates puzzles by searching for constellations
 that have only one single completion.
 
 Constellations are searched by iteratively adding one digit or black
@@ -8,7 +8,7 @@ field a time. Each time it is checked if there are still, at least,
 two completions. If there is none it backtracks one step. If there
 is only one solution we are finished.
 
-Proposed str8ts are solved by encoding them to a SAT problem,
+Proposed puzzles are solved by encoding them to a SAT problem,
 and then via minisat.
 
 It would be straight forward to add more constraints to the generation
@@ -19,7 +19,7 @@ You need to install `minisat` for the solving and install dependencies with
 
     npm update
 
-Then generate a str8ts with
+Then generate a puzzle with
 
     node solve.js
 
@@ -27,7 +27,7 @@ give it around five to ten minutes to generate a 9x9 puzzle.
 When finished, it outputs an URL that you can use to play it and
 share it :)
 
-Generate your own str8ts, share it with your friends. Let me know which ones you like best.
+Generate your own puzzle, share it with your friends. Let me know which ones you like best.
 
 Have fun
 https://twitter.com/markusliedl
