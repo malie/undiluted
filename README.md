@@ -1,7 +1,15 @@
-# undiluted - a trying to immitate str8ts - broken
+# undiluted - trying to immitate str8ts - broken
 
 Generates puzzles by searching for constellations
 that have only one single completion.
+
+The puzzles generated with this program force you to also place
+digits in the black fields to solve them.
+
+
+
+
+
 
 Constellations are searched by iteratively adding one digit or black
 field a time. Each time it is checked if there are still, at least,
