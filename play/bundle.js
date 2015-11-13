@@ -166,9 +166,8 @@ var Cell = react.createClass({
 		 fill:fillCol},
 	 key: 'r'}),
        rd.text({x: 24, y: z-20,
-		fontFamily: '"Arial Black", Gadget, sans-serif',
+		fontFamily: 'Gadget, "Arial Black", sans-serif',
 		fontSize: z/2 + (giv ? 5 : -2),
-		fontWeight: giv ? 'bold' : 'normal',
 		fill: (giv
 		       ? (black ? 'white' : 'black')
 		       : (black
@@ -263,9 +262,8 @@ var Controls = react.createClass({
 	       onClick: choose
 	      }),
 	      rd.text({x: b+24, y: z-20,
-		       fontFamily: '"Arial Black", Gadget, sans-serif',
+		       fontFamily: 'Gadget, "Arial Black", sans-serif',
 		       fontSize: z/2,
-		       fontWeight: 'normal',
 		       fill: 'rgb(100,20,20)',
 		       key: 't',
 		       onClick: choose},
@@ -347,7 +345,8 @@ var handler = {
 
   fieldClicked: function (col, row) {
     console.log('field clicked', col, row)
-    if (!m.isGivenAt(col, row)) {
+    if (!m.isGivenAt(col, row)
+	&& !m.isBlackAt(col, row)) {
       m = m.clone();
       m.setSelected(col, row);
       m.setSelectedField(m.isWrong(col,row)
@@ -355,7 +354,8 @@ var handler = {
       renderModel(m)}},
   
   mouseOverField: function (col, row) {
-    if (m.isGivenAt(col, row)) {
+    if (m.isGivenAt(col, row)
+	|| m.isBlackAt(col, row)) {
       m = m.clone();
       m.selectNothing()
       renderModel(m)}
