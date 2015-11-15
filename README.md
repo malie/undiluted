@@ -1,4 +1,4 @@
-# undiluted - trying to immitate str8ts - broken
+# undiluted - a trying to immitate straights - broken
 
 Generates puzzles by searching for constellations
 that have only one single completion.
