@@ -6,6 +6,10 @@ var underscore = require('underscore')
 var twirl = require('./twirl')
 var rd = react.DOM;
 
+var mobile =
+  (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+   .test(navigator.userAgent));
+
 function cloneObject(x) {
   var res = {}
   for (var nm in x) {
@@ -153,7 +157,6 @@ function svgPoints(xs) {
 	    return '' + pt[0] + ',' + pt[1]})
 	  .join(' '))}
 
-
 // cell size in pixels
 var z = 70;
 
@@ -257,7 +260,7 @@ var Page = react.createClass({
     var mod = this.props.model;
     var size = mod.size;
     var bwidth = size*z * (mod.hex ? 1.5 : 1.0);
-    var bheight = size*z;
+    var bheight = size*z * (mod.hex ? 0.89 : 1);
     var svgStyle = null;
     if (!mod.hex)
       svgStyle = {boxShadow: '10px 10px 30px rgb(160,140,140)'}
@@ -281,14 +284,11 @@ var Page = react.createClass({
 })
 
 var Controls = react.createClass({
-  getInitialState: function () {
-    return {digit: null}},
   render: function () {
     var mod = this.props.model;
     var size = mod.size;
     var bwidth = size*z;
     var T = this;
-    var digit = this.state.digit;
     return rd.svg(
       {width: bwidth-3,
        height: z-3,
@@ -300,12 +300,7 @@ var Controls = react.createClass({
       [underscore.range(0, mod.size).map(
 	function (c) {
 	  function choose(e) {
-	    if (c==digit) {
-	      handler.setNextClickPuts(null)
-	      T.setState({digit: null})}
-	    else {
-	      handler.setNextClickPuts(c)
-	      T.setState({digit: c})}}
+	    handler.digitClicked(c)}
 	  var b = z*c;
 	  var d = 2;
 	  return rd.g(
@@ -314,9 +309,7 @@ var Controls = react.createClass({
 	      {x:b , y:0, width:z-d*2, height:z-d*2,
 	       key: ''+c,
 	       style: {strokeWidth: 1,
-		       fill:(c==digit)
-		       ? 'rgb(220,205,205)'
-		       : 'rgb(255,235,235)'},
+		       fill: 'rgb(255,235,235)'},
 	       onClick: choose
 	      }),
 	      rd.text({x: b+24, y: z-20,
@@ -339,7 +332,6 @@ var Controls = react.createClass({
 
 })
     
-
 
 var ViewerWithControls = react.createClass({
   render: function () {
@@ -490,20 +482,15 @@ function keyDownHandler(e) {
 
 document.addEventListener('keydown', keyDownHandler, false)
 
-var nextClickPuts = null
-
 var handler = {
-
-  setNextClickPuts: function (digit) {
-    nextClickPuts = digit},
 
   fieldClicked: function (col, row) {
     console.log('field clicked', col, row)
     if (!m.isGivenAt(col, row)) {
       m = m.clone();
       m.setSelected(col, row);
-      m.setSelectedField(m.isWrong(col,row)
-			 ? null : nextClickPuts);
+      if (m.isWrong(col,row))
+	m.setSelectedField(null)
       renderModel(m)}},
   
   mouseOverField: function (col, row) {
@@ -519,10 +506,14 @@ var handler = {
       renderModel(m)}},
 
   mouseAway: function () {
-    m = m.clone();
-    m.selectNothing();
-    renderModel(m)},
-    
+    if (!mobile) {
+      m = m.clone();
+      m.selectNothing();
+      renderModel(m)}},
+
+  digitClicked: function (digit) {
+    this.digitPressed(digit)},
+  
   digitPressed: function (digit) {
     if (digit >= m.size) {
       console.log('bad digit')
@@ -593,7 +584,13 @@ function getGameFromURL() {
   renderModel(m);
 
   var bwidth = m.size*z;
-  document.getElementById('content').style.width = '' + bwidth + 'px'
+  var content = document.getElementById('content')
+  content.style.width = '' + bwidth + 'px'
+  if (mobile) {
+    content.style.margin = '0px'
+    document.body.style.margin = '0px'
+  }
+  
 
 }
 
